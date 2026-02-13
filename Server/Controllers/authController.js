@@ -1,7 +1,8 @@
-const bcrypt = require('bcrypt');
-const User = require('../models/User.js');
-const jwt = require('jsonwebtoken');
+import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
+import jwt from 'jsonwebtoken';
 
+// Register Controller
 export const registerUser=async(req, res)=>{
 
     try{
@@ -30,6 +31,46 @@ export const registerUser=async(req, res)=>{
     userId:user._id
 });
 }catch(err){
+    res.status(500).json({message:'Server Error'});
+}
+}
+
+
+//login controller
+export const loginUser=async(req,res)=>{
+
+    try{
+    const{email,password}=req.body
+    
+    if(!email || !password){
+
+        return res.status(400).json({message:'Please fill all the fields'});
+    }
+
+    const userExists= await User.findOne({email});
+    if(!userExists){
+        return res.status(400).json({message:'User does not exist'});
+    }
+
+    const isPasswordValid= await bcrypt.compare(password,userExists.password);
+
+    if(!isPasswordValid){
+        return res.status(400).json({message:'Invalid credentials'});
+    }
+
+    const token= jwt.sign({userId:userExists._id},process.env.JWT_SECRET,{expiresIn:'1h'});
+
+    res.status(200).json({
+        message:'Login successful',
+        token,
+        user:{
+            id:userExists._id,
+            name:userExists.name,
+            email:userExists.email
+        }
+    });
+}catch(err)
+{
     res.status(500).json({message:'Server Error'});
 }
 }
