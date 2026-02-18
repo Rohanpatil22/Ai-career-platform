@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authRoutes from './Routes/authRoutes.js';
 import userRoutes from './Routes/userRoutes.js';
+import resumeRoutes from './Routes/resumeRoutes.js';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ res.send('<h1>Server is running</h1>');
 
 app.use('/api/auth',authRoutes);
 app.use('/api/user', userRoutes);
+app.use("/api/resumes", resumeRoutes);
 
 const PORT=process.env.PORT || 5000;
 
