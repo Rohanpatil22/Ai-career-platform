@@ -15,13 +15,18 @@ const ResumeSchema= new mongoose.Schema({
         required:true,
 
     },
+    
+     analysis: {
+      type: String,
+      required: true,
+    },
 
     originalFile:{
 
         type:String,
         required:true,
     }
-},{timeStamps:true});
+},{timestamps:true});
 
 const Resume=mongoose.model('Resume',ResumeSchema);
 export default Resume;

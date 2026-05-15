@@ -8,3 +8,4 @@ const router=epress.Router();
 router.post('/upload',authMiddleware,upload.single('resume'),uploadresume);
 
 export default router;  
+
