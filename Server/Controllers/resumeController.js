@@ -2,8 +2,17 @@ import fs from 'fs';
 import { createRequire } from "module";
 import mammoth from 'mammoth';
 import Resume from '../models/Resume.js'; 
+import dotenv from 'dotenv';
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
+
+dotenv.config();
+
+console.log(process.env.GROQ_API_KEY);
+const client = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
 
 const require = createRequire(import.meta.url);
@@ -43,7 +52,7 @@ export const uploadresume=async(req, res)=>{
 
 
     const analysis = await analyzeResume(extractedText);
-
+   // const analysis = await analyzeResume('Hello');
     console.log("Resume Analysis:", analysis);
     //console.log("Extracted Text:", extractedText);
         const resume = await Resume.create({
@@ -66,13 +75,10 @@ export const uploadresume=async(req, res)=>{
 }
 
 const analyzeResume = async (resumeText) => {
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
   try {
-  const model = genAI.getGenerativeModel({
-  model: "gemini-2.0-flash",
-});
+
+    // Prevent huge token usage
+    //const trimmedResume = resumeText.slice(0, 4000);
 
     const prompt = `
 You are an ATS resume evaluator.
@@ -90,12 +96,28 @@ Resume:
 ${resumeText}
 `;
 
-const result = await model.generateContent(prompt);
+    const response = await client.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert ATS resume analyzer.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.5,
+      max_tokens: 700,
+    });
 
-    return result.response.text();
+    return response.choices[0].message.content;
 
   } catch (error) {
+    console.error(error);
     throw new Error(error.message);
   }
-
 };
+
+export default analyzeResume;
